@@ -1,7 +1,6 @@
-import { useReducer, useRef, useState } from "react"
-import { fetchChatGpt, ChatClient } from "@/request"
+import { useReducer } from "react"
 
-type ChatMessage = {
+export type ChatMessage = {
 	role: "user" | "assistant" | "system"
 	// ContentParts are only for the 'user' role:
 	content: string
@@ -41,36 +40,24 @@ const chatMessagesReducer = (state: ChatMessages, action: Action): ChatMessages 
 
 const useMessage = () => {
 	const [chatMessages, dispatch] = useReducer(chatMessagesReducer, initialChatMessages)
-	const [isLoading, setIsLoading] = useState(false)
-	const fetchRef = useRef<ChatClient | null>(null)
-	const onMessage = (msg: ChatMessage) => {
+	// 添加对话
+	const addMessage = (messages: ChatMessages) => {
+		dispatch({ type: "ADD_MESSAGE", payload: messages })
+	}
+	// 持续更新最新一条AI回答
+	const updateMessage = (msg: ChatMessage) => {
 		dispatch({ type: "UPDATE_ASSISTANT_MESSAGE", payload: msg.content })
 	}
-	const onDone = () => {
+	// 结束对话
+	const doneMessage = () => {
 		dispatch({ type: "DONE_ASSISTANT_MESSAGE" })
-		setIsLoading(false)
-	}
-	const addChat = (apiKey: string, content: ChatMessage["content"]) => {
-		const userMessage: ChatMessage = { role: "user", content }
-		const initAssistantMessage: ChatMessage = { role: "assistant", content: "", pending: true }
-		dispatch({ type: "ADD_MESSAGE", payload: [userMessage, initAssistantMessage] })
-		fetchRef.current = fetchChatGpt({ apiKey, messages: [...chatMessages, userMessage], onMessage, onDone })
-		fetchRef.current.open()
-		setIsLoading(true)
-	}
-
-	const stopChat = () => {
-		if (fetchRef.current) {
-			fetchRef.current.abort()
-			onDone()
-		}
 	}
 
 	return {
 		chatMessages,
-		addChat,
-		stopChat,
-		isLoading
+		addMessage,
+		updateMessage,
+		doneMessage,
 	}
 }
 

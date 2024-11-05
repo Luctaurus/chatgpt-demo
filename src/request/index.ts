@@ -99,7 +99,7 @@ export function fetchChatGpt(options: Options): ChatClient {
 				},
 				onerror(err) {
 					if (onError) {
-						onError(err)
+						onError(err.msg)
 					} else {
 						alert(err.msg)
 					}

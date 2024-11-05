@@ -1,4 +1,4 @@
-import { useState, KeyboardEventHandler } from "react"
+import { useState, KeyboardEventHandler, useRef } from "react"
 import Message from "@/components/Message"
 import ApiKeyDialog from "@/components/ApiKeyDialog"
 import { TextField, IconButton } from "@mui/material"
@@ -7,8 +7,10 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import SquareIcon from "@mui/icons-material/Square"
 import { styled } from "@mui/material/styles"
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom"
-import useMessage from "@/hooks/useMessage"
+import useMessage, { ChatMessage } from "@/hooks/useMessage"
 import useOpenAIApiKey from "@/hooks/useOpenAIApiKey"
+import { ChatClient, fetchChatGpt } from "./request"
+import { useFeedback } from "@/hooks/useFeedback"
 import "./App.css"
 
 const StyledButton = styled(IconButton)({
@@ -19,6 +21,11 @@ const StyledButton = styled(IconButton)({
 	"&:disabled": {
 		backgroundColor: "rgb(215, 215, 215)", // 设置按钮禁用状态下的背景色，替换为你想要的颜色
 		color: "rgb(244, 244, 244)",
+	},
+	"&:hover": {
+		opacity: 0.7,
+		backgroundColor: "#000000", // 设置按钮正常状态下的背景色，替换为你想要的颜色
+		color: "#ffffff",
 	},
 	padding: 0,
 	backgroundColor: "#000000", // 设置按钮正常状态下的背景色，替换为你想要的颜色
@@ -43,8 +50,10 @@ function ScrollToBottom() {
 const App: React.FC = () => {
 	const { apiKey, openDialog, handleSubmit, handleClose } = useOpenAIApiKey()
 	const [question, setQuestion] = useState<string>("")
-	const { addChat, stopChat, chatMessages, isLoading } = useMessage()
+	const { addMessage, updateMessage, doneMessage, chatMessages } = useMessage()
+	const [isLoading, setIsLoading] = useState(false)
 
+	// Chat组件
 	const messageItem = chatMessages.map((item, index) => {
 		const inversion = item.role === "user"
 		return <Message key={index} text={item.content} inversion={inversion} loading={item.pending} />
@@ -66,6 +75,51 @@ const App: React.FC = () => {
 		} else {
 			addChat(apiKey, question)
 			setQuestion("")
+		}
+	}
+
+	// 保存SSE连接
+	const fetchRef = useRef<ChatClient | null>(null)
+	// fetchChatGpt onDone回调
+	const onDone = () => {
+		doneMessage()
+		setIsLoading(false)
+	}
+	const showFeedback = useFeedback()
+	const handleError = (msg?: string) => {
+		showFeedback({
+			message: msg || "发生错误，请稍后再试。",
+			severity: "error",
+		})
+	}
+	// 添加对话(一条user，一条初始化ai回答)
+	const addChat = (apiKey: string, content: string) => {
+		if (!apiKey) {
+			showFeedback({
+				message: "请刷新后提交OpenAI API Key使用ChatGpt",
+				severity: "warning",
+			})
+			return
+		}
+		const userMessage: ChatMessage = { role: "user", content }
+		const initAssistantMessage: ChatMessage = { role: "assistant", content: "", pending: true }
+		addMessage([userMessage, initAssistantMessage])
+		fetchRef.current = fetchChatGpt({
+			apiKey,
+			messages: [...chatMessages, userMessage],
+			onMessage: updateMessage,
+			onDone,
+			onError: handleError,
+		})
+		fetchRef.current.open()
+		setIsLoading(true)
+	}
+
+	//终止回答
+	const stopChat = () => {
+		if (fetchRef.current) {
+			fetchRef.current.abort()
+			onDone()
 		}
 	}
 

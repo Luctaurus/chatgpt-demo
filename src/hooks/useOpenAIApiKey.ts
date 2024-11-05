@@ -27,7 +27,7 @@ const useOpenAIApiKey = () => {
     apiKey,
     openDialog,
     handleSubmit,
-    handleClose,
+    handleClose
   };
 };
 
