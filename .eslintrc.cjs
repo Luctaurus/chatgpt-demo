@@ -1,4 +1,4 @@
 module.exports = {
-  root: true,
-  // extends: ['@antfu'],
+	root: true,
+	extends: ["@antfu"],
 }

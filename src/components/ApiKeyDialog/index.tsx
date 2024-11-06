@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { TextField, Button, Dialog, Typography, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 
-const ApiKeyDialog: React.FC<{ open: boolean; onSubmit: (apiKey: string) => void; onClose: () => void }> = ({ open, onSubmit, onClose }) => {
+const ApiKeyDialog: React.FC<{ open: boolean; onSubmit: (apiKey: string) => void }> = ({ open, onSubmit }) => {
 	const [inputValue, setInputValue] = useState<string>("")
 
 	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,17 +24,7 @@ const ApiKeyDialog: React.FC<{ open: boolean; onSubmit: (apiKey: string) => void
 				<Typography variant='body1' gutterBottom>
 					请在下面的输入框中输入您的 OpenAI API Key使用ChatGpt。此密钥将被安全存储在您的浏览器中。
 				</Typography>
-				<TextField
-					autoFocus
-					margin='dense'
-					label='API Key'
-					type='text'
-					fullWidth
-					variant='outlined'
-					value={inputValue}
-					onChange={handleInputChange}
-					inputProps={{ style: { fontSize: 16 } }} // 修改输入框字体大小
-				/>
+				<TextField autoFocus margin='dense' label='API Key' type='text' fullWidth variant='outlined' value={inputValue} onChange={handleInputChange} />
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={handleSubmitClick} color='primary' variant='contained'>

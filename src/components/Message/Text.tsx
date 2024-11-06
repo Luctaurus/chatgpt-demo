@@ -35,7 +35,7 @@ mdi
 	.use(MdMermaid)
 
 function highlightBlock(str: string, lang?: string) {
-	return `<pre class="code-block-wrapper"><div class="flex items-center justify-between"><span class="code-block-header__lang">${lang}</span><button class="copy-btn">复制代码</button></div><code class="hljs code-block-body ${lang}">${str}</code></pre>`
+	return `<pre class="code-block-wrapper"><div class="flex items-center justify-between copy-row pb-1"><span class="code-block-header__lang">${lang}</span><button class="copy-btn">复制代码</button></div><code class="hljs code-block-body ${lang}">${str}</code></pre>`
 }
 
 function MarkdownBody(info: MarkdownInfo) {

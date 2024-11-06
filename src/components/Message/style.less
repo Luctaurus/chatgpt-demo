@@ -31,7 +31,6 @@
 	.code-block {
 		&-wrapper {
 			position: relative;
-			padding-top: 24px;
 		}
 
 		&-header {
@@ -135,9 +134,14 @@ html.dark {
 @media screen and (max-width: 533px) {
 	.markdown-body .code-block-wrapper {
 		padding: unset;
-
+		.copy-row {
+			padding-bottom: .5rem;
+			padding-top: .5rem;
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
 		code {
-			padding: 24px 16px 16px 16px;
+			padding: 8px 16px 16px 16px;
 		}
 	}
 }
