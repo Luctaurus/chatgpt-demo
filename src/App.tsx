@@ -48,7 +48,7 @@ function ScrollToBottom() {
 }
 
 const App: React.FC = () => {
-	const { apiKey, openDialog, handleSubmit, handleClose } = useOpenAIApiKey()
+	const { apiKey, openDialog, handleSubmit } = useOpenAIApiKey()
 	const [question, setQuestion] = useState<string>("")
 	const { addMessage, updateMessage, doneMessage, chatMessages } = useMessage()
 	const [isLoading, setIsLoading] = useState(false)
@@ -162,7 +162,7 @@ const App: React.FC = () => {
 					</div>
 				</div>
 			</div>
-			<ApiKeyDialog open={openDialog} onSubmit={handleSubmit} onClose={handleClose} />
+			<ApiKeyDialog open={openDialog} onSubmit={handleSubmit} />
 		</>
 	)
 }
