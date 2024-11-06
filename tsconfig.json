@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "./dist",
     "module": "ESNext",
     "target": "ESNext",
     "lib": ["DOM", "ESNext"],
