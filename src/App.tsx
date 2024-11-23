@@ -62,6 +62,9 @@ const App: React.FC = () => {
       content: msg != null ? msg : '发生错误，请稍后再试。',
       type: 'error',
     })
+    updateMessage({ role: 'assistant', content: '发生错误，请稍后再试。' })
+    doneMessage()
+    setIsLoading(false)
   }
   const fetchRef = useRef<ChatClient | null>(null)
   // 添加对话(一条user，一条初始化ai回答)

@@ -40,3 +40,4 @@ npm run dev
 启动应用后，输入你的 OpenAI API Key。
 提交 API Key 后，开始与 ChatGPT 进行对话。
 输入消息并查看 ChatGPT 的回复。
+如需修改模型等参数请在.env文件进行修改

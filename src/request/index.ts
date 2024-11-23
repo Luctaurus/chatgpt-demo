@@ -11,7 +11,7 @@ interface Options {
   onMessage: (msg: Message) => void
   onDone: () => void
   onClose?: () => void
-  onError?: (err: any) => void
+  onError: (err?: string) => void
 }
 
 export interface Message {
@@ -36,9 +36,9 @@ const defaultHeaders = {
   'Content-Type': 'application/json',
 }
 
-const MODEL = 'nousresearch/hermes-3-llama-3.1-405b:free'
+const model = import.meta.env.VITE_OPEN_ROUTER_MODEL as string
 
-const openAIApiUrl = 'https://openrouter.ai/api/v1/chat/completions'
+const openAIApiUrl = import.meta.env.VITE_Open_AI_Api_Url as string
 
 export function fetchChatGpt(options: Options): ChatClient {
   const { apiKey, messages, onMessage, onClose, onDone, onError } = options
@@ -51,7 +51,7 @@ export function fetchChatGpt(options: Options): ChatClient {
         headers: { ...defaultHeaders, Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
           stream: true,
-          model: MODEL,
+          model,
           messages,
           transforms: ['middle-out'],
           max_tokens: 0,
@@ -59,35 +59,22 @@ export function fetchChatGpt(options: Options): ChatClient {
         signal: ctrl.signal,
         async onopen(response) {
           if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
-            return // everything's good
+            // everything's good
           }
           else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
             // client-side errors are usually non-retriable:
-            if (onError) {
-              onError('发生错误，请稍后再试1')
-              ctrl.abort()
-            }
-            else {
-              alert('发生错误，请稍后再试')
-            }
+            ctrl.abort()
+            onError()
           }
           else {
-            if (onError) {
-              onError('发生错误，请稍后再试2')
-              ctrl.abort()
-            }
-            else {
-              alert('发生错误，请稍后再试')
-            }
+            ctrl.abort()
+            onError()
           }
-          ctrl.abort()
-          onDone()
         },
         onmessage(msg) {
           if (msg.event === 'FatalError') {
-            alert('发生错误，请稍后再试')
             ctrl.abort()
-            onDone()
+            onError()
             return
           }
           if (msg.data === '[DONE]') {
@@ -95,18 +82,20 @@ export function fetchChatGpt(options: Options): ChatClient {
             onDone()
             return
           }
-          const jsonData = JSON.parse(msg.data) as { choices: Delta[] }
-          // 如果等于stop表示结束
-          if (jsonData.choices[0].finish_reason === 'stop') {
-            ctrl.abort()
-            onMessage(jsonData.choices[0].delta as Message)
-            onDone()
-            return
-          }
-          if (jsonData.choices?.length
-            && jsonData.choices[0].delta
-            && jsonData.choices[0].delta.content !== undefined) {
-            onMessage(jsonData.choices[0].delta as Message)
+          if (msg.data) {
+            const jsonData = JSON.parse(msg.data) as { choices: Delta[] }
+            // 如果等于stop表示结束
+            if (jsonData.choices[0].finish_reason === 'stop') {
+              ctrl.abort()
+              onMessage(jsonData.choices[0].delta as Message)
+              onDone()
+              return
+            }
+            if (jsonData.choices?.length
+              && jsonData.choices[0].delta
+              && jsonData.choices[0].delta.content !== undefined) {
+              onMessage(jsonData.choices[0].delta as Message)
+            }
           }
         },
         onclose() {
@@ -116,13 +105,8 @@ export function fetchChatGpt(options: Options): ChatClient {
           ctrl.abort()
         },
         onerror(err: Err) {
-          if (onError) {
-            onError(err.msg)
-          }
-          else {
-            alert(err.msg)
-          }
           ctrl.abort()
+          onError(err.msg)
         },
       })
     },
